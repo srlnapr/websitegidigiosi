@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+@theme {
+  --color-on-surface: #191b22;
+  --color-error: #ba1a1a;
+  --color-on-tertiary: #ffffff;
+  --color-secondary: #006e2c;
+  --color-on-error-container: #93000a;
+  --color-inverse-on-surface: #eff0fa;
+  --color-on-primary-fixed: #001a41;
+  --color-error-container: #ffdad6;
+  --color-surface: #f9f9ff;
+  --color-on-surface-variant: #424753;
+  --color-surface-container-low: #f2f3fd;
+  --color-surface-bright: #f9f9ff;
+  --color-on-error: #ffffff;
+  --color-tertiary: #765700;
+  --color-tertiary-container: #956e00;
+  --color-outline-variant: #c2c6d5;
+  --color-tertiary-fixed-dim: #fbbc06;
+  --color-secondary-fixed-dim: #6ddd81;
+  --color-surface-dim: #d8d9e3;
+  --color-on-secondary-fixed-variant: #005320;
+  --color-on-background: #191b22;
+  --color-surface-variant: #e1e2eb;
+  --color-inverse-surface: #2e3038;
+  --color-on-primary-container: #fefcff;
+  --color-tertiary-fixed: #ffdea0;
+  --color-secondary-container: #86f898;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-surface-tint: #005ac1;
+  --color-background: #f9f9ff;
+  --color-on-primary-fixed-variant: #004494;
+  --color-on-primary: #ffffff;
+  --color-on-secondary-container: #00722f;
+  --color-surface-container-highest: #e1e2eb;
+  --color-primary-fixed: #d8e2ff;
+  --color-primary-container: #2771df;
+  --color-on-tertiary-container: #fffbff;
+  --color-primary: #0058bd;
+  --color-surface-container: #ecedf7;
+  --color-on-secondary-fixed: #002108;
+  --color-secondary-fixed: #89fa9b;
+  --color-outline: #727785;
+  --color-on-tertiary-fixed: #261a00;
+  --color-surface-container-high: #e7e7f1;
+  --color-inverse-primary: #adc6ff;
+  --color-on-tertiary-fixed-variant: #5c4300;
+  --color-primary-fixed-dim: #adc6ff;
+
+  --spacing-gutter: 24px;
+  --spacing-base: 4px;
+  --spacing-margin-desktop: 32px;
+  --spacing-margin-mobile: 16px;
+}
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+    background-color: var(--color-background, #f9f9ff);
+    color: var(--color-on-background, #191b22);
+    font-family: 'Plus Jakarta Sans', 'Product Sans', 'Google Sans', system-ui, -apple-system, sans-serif;
+  }
+  
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom Utilities for Design Mockup */
+.font-product {
+  font-family: 'Plus Jakarta Sans', 'Product Sans', 'Google Sans', sans-serif;
+}
+
+.font-code {
+  font-family: 'JetBrains Mono', 'Google Sans Mono', monospace;
+}
+
+.font-display-lg {
+  font-size: 57px;
+  line-height: 64px;
+  letter-spacing: -0.25px;
+  font-weight: 700;
+}
+
+.font-headline-lg {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+}
+
+.font-headline-lg-mobile {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 600;
+}
+
+.font-title-md {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+}
+
+.font-body-lg {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.font-body-md {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.font-code-sm {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-label-caps {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Design System Spacing Utilities */
+.p-xs { padding: 8px; }
+.px-xs { padding-left: 8px; padding-right: 8px; }
+.py-xs { padding-top: 8px; padding-bottom: 8px; }
+.gap-xs { gap: 8px; }
+
+.p-sm { padding: 16px; }
+.px-sm { padding-left: 16px; padding-right: 16px; }
+.py-sm { padding-top: 16px; padding-bottom: 16px; }
+.gap-sm { gap: 16px; }
+
+.p-md { padding: 24px; }
+.px-md { padding-left: 24px; padding-right: 24px; }
+.py-md { padding-top: 24px; padding-bottom: 24px; }
+.gap-md { gap: 24px; }
+
+.p-lg { padding: 40px; }
+.px-lg { padding-left: 40px; padding-right: 40px; }
+.py-lg { padding-top: 40px; padding-bottom: 40px; }
+.gap-lg { gap: 40px; }
+
+.p-xl { padding: 64px; }
+.px-xl { padding-left: 64px; padding-right: 64px; }
+.py-xl { padding-top: 64px; padding-bottom: 64px; }
+.gap-xl { gap: 64px; }
+
+.p-gutter { padding: 24px; }
+.gap-gutter { gap: 24px; }
+
+

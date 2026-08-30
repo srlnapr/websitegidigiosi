@@ -1,0 +1,33 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  avatar_url String?
+  role       String   @default("member") // "member" | "admin"
+  team_id    String?
+  team       Team?    @relation("TeamMembers", fields: [team_id], references: [id], onDelete: SetNull)
+  led_team   Team?    @relation("TeamLeader")
+  created_at DateTime @default(now())
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  track       String   // "WEB" | "MOBILE" | "AI_ML" | "CLOUD" | "UI_UX"
+  invite_code String   @unique // GDG-XXXX
+  leader_id   String   @unique
+  leader      User     @relation("TeamLeader", fields: [leader_id], references: [id], onDelete: Cascade)
+  max_members Int      @default(5)
+  members     User[]   @relation("TeamMembers")
+  created_at  DateTime @default(now())
+}
