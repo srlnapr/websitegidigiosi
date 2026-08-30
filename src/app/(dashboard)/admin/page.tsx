@@ -267,98 +267,116 @@ export default function AdminDashboard() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#727785] mb-2">
-            Overview
+        <nav className="flex-1 px-3 py-4 space-y-3 overflow-y-auto">
+          <div>
+            <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-[#727785] mb-1.5">
+              Core Overview
+            </div>
+            <div className="space-y-1">
+              <button
+                onClick={() => { setActiveTab('admin-overview'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'admin-overview'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-white/80 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">grid_view</span>
+                  <span className="text-xs">Overview</span>
+                </div>
+                {activeTab === 'admin-overview' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={() => { setActiveTab('admin-overview'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'admin-overview'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-white/80 font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">grid_view</span>
-              <span className="text-xs">Overview</span>
+          <div>
+            <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-[#727785] mb-1.5">
+              Squads & Matchmaking
             </div>
-            {activeTab === 'admin-overview' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
-          </button>
+            <div className="space-y-1">
+              <button
+                onClick={() => { setActiveTab('h3-matchmaking'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'h3-matchmaking'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-white/80 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-[#fbbc06]" />
+                  <span className="text-xs">H3 Matchmaking Pool</span>
+                </div>
+                {waitingPool.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-[#fbbc06] text-[#765700] text-[9px] font-extrabold">
+                    {waitingPool.length}
+                  </span>
+                )}
+              </button>
 
-          <button
-            onClick={() => { setActiveTab('h3-matchmaking'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'h3-matchmaking'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-white/80 font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-[#fbbc06]" />
-              <span className="text-xs">H3 Matchmaking Pool</span>
+              <button
+                onClick={() => { setActiveTab('team-approvals'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'team-approvals'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-white/80 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">verified</span>
+                  <span className="text-xs">Team Approvals</span>
+                </div>
+                {pendingApprovalTeams.length > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full bg-[#ba1a1a] text-white text-[9px] font-extrabold animate-pulse">
+                    {pendingApprovalTeams.length} Pending
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#e8f0fe] text-[#0058bd]">
+                    {teams.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => { setActiveTab('members-directory'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'members-directory'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-white/80 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">group</span>
+                  <span className="text-xs">Members & Roles</span>
+                </div>
+                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                  activeTab === 'members-directory' ? 'bg-white/20 text-white' : 'bg-[#e6f4ea] text-[#137333]'
+                }`}>
+                  {users.length}
+                </span>
+              </button>
             </div>
-            {waitingPool.length > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-[#fbbc06] text-[#765700] text-[9px] font-extrabold">
-                {waitingPool.length}
-              </span>
-            )}
-          </button>
+          </div>
 
-          <button
-            onClick={() => { setActiveTab('team-approvals'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'team-approvals'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-white/80 font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">verified</span>
-              <span className="text-xs">Team Approvals</span>
+          <div>
+            <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-[#727785] mb-1.5">
+              Program & Events
             </div>
-            {pendingApprovalTeams.length > 0 ? (
-              <span className="px-2 py-0.5 rounded-full bg-[#ba1a1a] text-white text-[9px] font-extrabold animate-pulse">
-                {pendingApprovalTeams.length} Pending
-              </span>
-            ) : (
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#e8f0fe] text-[#0058bd]">
-                {teams.length}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('members-directory'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'members-directory'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-white/80 font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">group</span>
-              <span className="text-xs">Members & Roles</span>
+            <div className="space-y-1">
+              <Link
+                href="/admin/events-milestones"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all bg-[#0058bd]/10 hover:bg-[#0058bd] text-[#0058bd] hover:text-white font-bold text-xs group border border-[#0058bd]/20 shadow-2xs"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">calendar_add_on</span>
+                  <span>Deadlines & Event Panel</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded-full bg-[#0058bd] text-white group-hover:bg-white group-hover:text-[#0058bd] text-[9px] font-extrabold transition-colors">
+                  LIVE
+                </span>
+              </Link>
             </div>
-            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-              activeTab === 'members-directory' ? 'bg-white/20 text-white' : 'bg-[#e6f4ea] text-[#137333]'
-            }`}>
-              {users.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('event-manager'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'event-manager'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-white/80 font-medium'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">calendar_add_on</span>
-            <span className="text-xs">Event Manager</span>
-          </button>
+          </div>
         </nav>
 
         {/* Sidebar Footer Actions */}

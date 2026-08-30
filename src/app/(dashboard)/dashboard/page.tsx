@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import * as store from '@/lib/store';
+import * as adminSvc from '@/lib/admin-services';
 import { User, Team, ProjectTrack, H3Role } from '@/types';
+import type { Milestone, ChapterEvent } from '@/types/admin';
 import UserAvatar from '@/components/UserAvatar';
 import { 
   X, 
@@ -32,7 +34,16 @@ import {
   Clock,
   Bell,
   Check,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  MapPin,
+  Globe,
+  GitBranch,
+  Frame,
+  Video,
+  Mic,
+  Flag,
+  CheckCircle2
 } from 'lucide-react';
 
 const TRACK_BADGES: Record<ProjectTrack, { label: string; color: string; tag: string }> = {
@@ -96,14 +107,22 @@ export default function UserDashboard() {
   const [selectedH3Role, setSelectedH3Role] = useState<H3Role>('Hacker');
   const [matchmakingSubmitting, setMatchmakingSubmitting] = useState(false);
 
+  // Milestones & Chapter Events state
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [chapterEvents, setChapterEvents] = useState<ChapterEvent[]>([]);
+
   const refreshData = useCallback(async () => {
     if (!currentUser) return;
-    const [teams, team] = await Promise.all([
+    const [teams, team, activeMilestones, liveEvents] = await Promise.all([
       store.getAllTeams(),
       store.getUserTeam(currentUser.id),
+      adminSvc.getActiveMilestones(),
+      adminSvc.getPublishedEvents(),
     ]);
     setAllTeams(teams);
     setUserTeam(team);
+    setMilestones(activeMilestones);
+    setChapterEvents(liveEvents);
     await refreshProfile();
   }, [currentUser, refreshProfile]);
 
@@ -115,13 +134,17 @@ export default function UserDashboard() {
         router.replace('/admin');
         return;
       }
-      const [teams, team] = await Promise.all([
+      const [teams, team, activeMilestones, liveEvents] = await Promise.all([
         store.getAllTeams(),
         store.getUserTeam(currentUser.id),
+        adminSvc.getActiveMilestones(),
+        adminSvc.getPublishedEvents(),
       ]);
       if (isSubscribed) {
         setAllTeams(teams);
         setUserTeam(team);
+        setMilestones(activeMilestones);
+        setChapterEvents(liveEvents);
         setSettingName(currentUser.name || '');
         if (currentUser.student_id) setSettingPhone(currentUser.student_id);
         if (currentUser.h3_role) setSettingH3Role(currentUser.h3_role);
@@ -341,103 +364,132 @@ export default function UserDashboard() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#727785] mb-2">
-            Main Menu
+        <nav className="flex-1 px-3 py-4 space-y-3 overflow-y-auto">
+          <div>
+            <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-[#727785] mb-1.5">
+              Main Menu
+            </div>
+            <div className="space-y-1">
+              <button
+                onClick={() => { setActiveTab('dashboard-overview'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'dashboard-overview'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">grid_view</span>
+                  <span className="text-xs">Overview</span>
+                </div>
+                {activeTab === 'dashboard-overview' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+              </button>
+
+              <button
+                onClick={() => { setActiveTab('my-teams'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'my-teams'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">groups</span>
+                  <span className="text-xs">My Team</span>
+                </div>
+                {userTeam && (
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold ${
+                    activeTab === 'my-teams' ? 'bg-white/20 text-white' : 'bg-[#e6f4ea] text-[#137333]'
+                  }`}>
+                    ACTIVE
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => { setActiveTab('explore-projects'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'explore-projects'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">search_insights</span>
+                  <span className="text-xs">Explore Projects</span>
+                </div>
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={() => { setActiveTab('dashboard-overview'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'dashboard-overview'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">grid_view</span>
-              <span className="text-xs">Overview</span>
+          <div>
+            <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-[#727785] mb-1.5">
+              Schedules & Submissions
             </div>
-            {activeTab === 'dashboard-overview' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('my-teams'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'my-teams'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">groups</span>
-              <span className="text-xs">My Team</span>
+            <div className="space-y-1">
+              <button
+                onClick={() => { setActiveTab('events-hackathons'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'events-hackathons'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                  <span className="text-xs">Deadlines & Events</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#e8f0fe] text-[#0058bd]">
+                  Live
+                </span>
+              </button>
             </div>
-            {userTeam && (
-              <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold ${
-                activeTab === 'my-teams' ? 'bg-white/20 text-white' : 'bg-[#e6f4ea] text-[#137333]'
-              }`}>
-                ACTIVE
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('explore-projects'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'explore-projects'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">search_insights</span>
-              <span className="text-xs">Explore Projects</span>
-            </div>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('events-hackathons'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'events-hackathons'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">event</span>
-              <span className="text-xs">Hackathons</span>
-            </div>
-          </button>
-
-          <div className="pt-3 px-3 text-[10px] font-bold uppercase tracking-wider text-[#727785] mb-2">
-            Account
           </div>
 
-          <button
-            onClick={() => { setActiveTab('dashboard-settings'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
-              activeTab === 'dashboard-settings'
-                ? 'bg-[#0058bd] text-white font-bold shadow-sm'
-                : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">settings</span>
-            <span className="text-xs">Settings</span>
-          </button>
+          <div>
+            <div className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-[#727785] mb-1.5">
+              Account & Settings
+            </div>
+            <div className="space-y-1">
+              <button
+                onClick={() => { setActiveTab('dashboard-settings'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'dashboard-settings'
+                    ? 'bg-[#0058bd] text-white font-bold shadow-sm'
+                    : 'text-[#424753] hover:bg-[#f2f3fd] font-medium'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">settings</span>
+                <span className="text-xs">Settings</span>
+              </button>
 
-          {(currentUser?.role as string) === 'admin' && (
-            <Link
-              href="/admin"
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#ba1a1a] bg-[#ffdad6]/40 hover:bg-[#ffdad6] font-bold text-xs transition-all border border-[#ba1a1a]/20"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                <span>Admin Dashboard</span>
-              </div>
-              <span className="text-[9px] bg-[#ba1a1a] text-white px-1.5 py-0.5 rounded-full uppercase">Admin</span>
-            </Link>
-          )}
+              {(currentUser?.role as string) === 'admin' && (
+                <div className="pt-2 space-y-1">
+                  <Link
+                    href="/admin"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#ba1a1a] bg-[#ffdad6]/40 hover:bg-[#ffdad6] font-bold text-xs transition-all border border-[#ba1a1a]/20"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                      <span>Admin Overview</span>
+                    </div>
+                    <span className="text-[9px] bg-[#ba1a1a] text-white px-1.5 py-0.5 rounded-full uppercase">Admin</span>
+                  </Link>
+
+                  <Link
+                    href="/admin/events-milestones"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#0058bd] bg-[#e8f0fe]/60 hover:bg-[#e8f0fe] font-bold text-xs transition-all border border-[#0058bd]/20"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-[18px]">calendar_add_on</span>
+                      <span>Deadlines & Event Panel</span>
+                    </div>
+                    <span className="text-[9px] bg-[#0058bd] text-white px-1.5 py-0.5 rounded-full font-bold">MANAGE</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </nav>
 
         {/* Sidebar Footer Actions */}
@@ -1212,40 +1264,227 @@ export default function UserDashboard() {
 
           ) : activeTab === 'events-hackathons' ? (
 
-            /* HACKATHONS TAB */
-            <section className="space-y-md animate-fade-in-up">
-              <div>
-                <h2 className="font-headline-lg text-2xl font-bold text-on-surface">Upcoming Hackathons & Challenges</h2>
-                <p className="text-xs text-on-surface-variant mt-1">Participate in global and local GDG challenges to win Google mentorship & prizes.</p>
+            /* DEADLINES & EVENTS TAB */
+            <section className="space-y-6 animate-fade-in-up">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-extrabold text-[#191b22] tracking-tight">
+                    Project Deadlines & Chapter Events
+                  </h2>
+                  <p className="text-xs text-[#727785] mt-1">
+                    Stay on track with project milestones, deliverable requirements, and upcoming GDG campus workshops.
+                  </p>
+                </div>
+                {(currentUser?.role as string) === 'admin' && (
+                  <Link
+                    href="/admin/events-milestones"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#0058bd] text-white rounded-xl text-xs font-bold hover:bg-[#2771df] transition-all shadow-sm shrink-0"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    <span>Manage Events & Deadlines (Admin)</span>
+                  </Link>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-                <div className="bg-surface-container-lowest p-gutter rounded-[24px] border border-outline-variant/30 shadow-xs space-y-sm">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-                    <span className="material-symbols-outlined text-[24px]">emoji_events</span>
+              {/* 1. PROJECT MILESTONES SECTION */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Flag className="w-4 h-4 text-[#0058bd]" />
+                    <h3 className="font-bold text-sm text-[#191b22]">Active Submission Milestones</h3>
                   </div>
-                  <h3 className="font-title-md text-base font-bold text-on-surface">Google Solution Challenge 2026</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">Build solutions for UN Sustainable Development Goals using Google Cloud, Android, or AI tools.</p>
-                  <div className="text-[10px] text-secondary font-bold uppercase tracking-wider pt-2">Registration Open</div>
+                  <span className="text-[10px] font-bold text-[#0058bd] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full">
+                    {milestones.length} Milestones
+                  </span>
                 </div>
 
-                <div className="bg-surface-container-lowest p-gutter rounded-[24px] border border-outline-variant/30 shadow-xs space-y-sm">
-                  <div className="w-10 h-10 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center font-bold">
-                    <span className="material-symbols-outlined text-[24px]">code_blocks</span>
+                {milestones.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-8 border border-[#c2c6d5]/30 text-center space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-[#f2f3fd] text-[#0058bd] flex items-center justify-center mx-auto">
+                      <Flag className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-bold text-sm text-[#191b22]">No Active Deadlines Right Now</h4>
+                    <p className="text-xs text-[#727785] max-w-sm mx-auto">
+                      All project deliverables have been submitted or next milestone schedule will be announced soon.
+                    </p>
                   </div>
-                  <h3 className="font-title-md text-base font-bold text-on-surface">Purwokerto AI Hackathon</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">48-hour hackathon focused on generative AI and smart campus solutions.</p>
-                  <div className="text-[10px] text-tertiary font-bold uppercase tracking-wider pt-2">Coming Next Month</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {milestones.map((m) => {
+                      const now = Date.now();
+                      const due = new Date(m.due_date).getTime();
+                      const diffMs = due - now;
+                      const isOverdue = diffMs < 0;
+                      const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                      const isClosed = m.status === 'closed';
+
+                      return (
+                        <div
+                          key={m.id}
+                          className={`bg-white rounded-2xl p-5 border shadow-xs flex flex-col justify-between space-y-3 transition-all ${
+                            isClosed ? 'border-[#c2c6d5]/40 opacity-75' : 'border-[#c2c6d5]/40 hover:shadow-md'
+                          }`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  isClosed
+                                    ? 'bg-[#f2f3fd] text-[#727785] border-[#c2c6d5]/40'
+                                    : 'bg-[#e8f0fe] text-[#0058bd] border-[#0058bd]/30'
+                                }`}
+                              >
+                                {isClosed ? '🔒 Submissions Closed' : '✅ Open for Submissions'}
+                              </span>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 ${
+                                  isOverdue
+                                    ? 'bg-red-100 text-red-700 border-red-200'
+                                    : daysLeft <= 3
+                                    ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                    : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                                }`}
+                              >
+                                <Clock className="w-3 h-3" />
+                                <span>{isOverdue ? 'Overdue' : `Closes in ${daysLeft} days`}</span>
+                              </span>
+                            </div>
+
+                            <h4 className="font-extrabold text-base text-[#191b22]">{m.title}</h4>
+                            {m.description && (
+                              <p className="text-xs text-[#727785] leading-relaxed line-clamp-2">{m.description}</p>
+                            )}
+                          </div>
+
+                          <div className="space-y-2.5 pt-2 border-t border-[#c2c6d5]/20">
+                            <div className="flex items-center gap-1.5 text-xs text-[#424753]">
+                              <Calendar className="w-3.5 h-3.5 text-[#727785]" />
+                              <span>Due Date: <strong>{new Date(m.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong></span>
+                            </div>
+
+                            {/* Required Badges */}
+                            <div className="flex flex-wrap gap-1">
+                              {m.required_fields?.github_url && (
+                                <span className="px-2 py-0.5 bg-[#f2f3fd] text-[#0058bd] rounded-md text-[10px] font-bold flex items-center gap-1 border border-[#0058bd]/20">
+                                  <GitBranch className="w-3 h-3" /> GitHub
+                                </span>
+                              )}
+                              {m.required_fields?.figma_url && (
+                                <span className="px-2 py-0.5 bg-[#ffdad6] text-[#ba1a1a] rounded-md text-[10px] font-bold flex items-center gap-1 border border-[#ba1a1a]/20">
+                                  <Frame className="w-3 h-3" /> Figma
+                                </span>
+                              )}
+                              {m.required_fields?.live_demo_url && (
+                                <span className="px-2 py-0.5 bg-[#e6f4ea] text-[#006e2c] rounded-md text-[10px] font-bold flex items-center gap-1 border border-[#006e2c]/20">
+                                  <Globe className="w-3 h-3" /> Live Demo
+                                </span>
+                              )}
+                              {m.required_fields?.video_url && (
+                                <span className="px-2 py-0.5 bg-[#ffdea0] text-[#765700] rounded-md text-[10px] font-bold flex items-center gap-1 border border-[#765700]/20">
+                                  <Video className="w-3 h-3" /> Demo Video
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* 2. CHAPTER EVENTS SECTION */}
+              <div className="space-y-3 pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#006e2c]" />
+                    <h3 className="font-bold text-sm text-[#191b22]">Upcoming Chapter Events & Workshops</h3>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#006e2c] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full">
+                    {chapterEvents.length} Published
+                  </span>
                 </div>
 
-                <div className="bg-surface-container-lowest p-gutter rounded-[24px] border border-outline-variant/30 shadow-xs space-y-sm">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center font-bold">
-                    <span className="material-symbols-outlined text-[24px]">school</span>
+                {chapterEvents.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-8 border border-[#c2c6d5]/30 text-center space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-[#e6f4ea] text-[#006e2c] flex items-center justify-center mx-auto">
+                      <Calendar className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-bold text-sm text-[#191b22]">No Upcoming Events Scheduled Yet</h4>
+                    <p className="text-xs text-[#727785] max-w-sm mx-auto">
+                      Our chapter leads are preparing hands-on tech workshops and study jams. Check back soon!
+                    </p>
                   </div>
-                  <h3 className="font-title-md text-base font-bold text-on-surface">Cloud Study Jam Telkom</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">Hands-on Google Cloud workshops with free Qwiklabs credits and certificates.</p>
-                  <div className="text-[10px] text-primary font-bold uppercase tracking-wider pt-2">Bi-weekly Workshops</div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {chapterEvents.map((ev) => {
+                      const categoryColors: Record<string, string> = {
+                        Workshop: 'bg-blue-100 text-blue-800 border-blue-200',
+                        Hackathon: 'bg-red-100 text-red-800 border-red-200',
+                        'Info Session': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                        'Study Jam': 'bg-amber-100 text-amber-800 border-amber-200',
+                      };
+                      const catColor = categoryColors[ev.category] || 'bg-[#e8f0fe] text-[#0058bd]';
+
+                      return (
+                        <div
+                          key={ev.id}
+                          className="bg-white rounded-2xl border border-[#c2c6d5]/40 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                        >
+                          {ev.banner_url && (
+                            <div
+                              className="w-full h-28 bg-cover bg-center"
+                              style={{ backgroundImage: `url(${ev.banner_url})` }}
+                            />
+                          )}
+
+                          <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
+                            <div className="space-y-2">
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${catColor}`}>
+                                {ev.category}
+                              </span>
+                              <h4 className="font-extrabold text-sm text-[#191b22] leading-snug">{ev.title}</h4>
+                              <div className="space-y-1 text-xs text-[#727785]">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5 text-[#0058bd] shrink-0" />
+                                  <span>{new Date(ev.date_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <MapPin className="w-3.5 h-3.5 text-[#006e2c] shrink-0" />
+                                  <span className="truncate">{ev.venue_or_link}</span>
+                                </div>
+                                {ev.speaker_name && (
+                                  <div className="flex items-center gap-1.5 truncate">
+                                    <Mic className="w-3.5 h-3.5 text-[#765700] shrink-0" />
+                                    <span className="truncate font-semibold text-[#424753]">{ev.speaker_name}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-[#c2c6d5]/20">
+                              {ev.rsvp_url ? (
+                                <a
+                                  href={ev.rsvp_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full flex items-center justify-center gap-1.5 py-2 bg-[#0058bd] text-white rounded-xl text-xs font-bold hover:bg-[#2771df] transition-colors shadow-2xs"
+                                >
+                                  <span>RSVP Now</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              ) : (
+                                <span className="block text-center py-2 bg-[#f2f3fd] text-[#727785] rounded-xl text-xs font-semibold">
+                                  Registration on site
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </section>
 

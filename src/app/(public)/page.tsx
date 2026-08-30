@@ -1,16 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BentoGrid from '@/components/BentoGrid';
-import { MapPin, Users, UserPlus, LayoutDashboard, Bell, Terminal, CheckCircle, Mail, Map, Sparkles, Send } from 'lucide-react';
+import { MapPin, Users, UserPlus, LayoutDashboard, Bell, Terminal, CheckCircle, Mail, Map, Sparkles, Send, Calendar, Clock, ExternalLink, Mic } from 'lucide-react';
+import { getPublishedEvents } from '@/lib/admin-services';
+import type { ChapterEvent } from '@/types/admin';
 
 export default function LandingPage() {
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [subscribedEmail, setSubscribedEmail] = useState('');
   const [subscribeSuccess, setSubscribeSuccess] = useState(false);
+  const [publishedEvents, setPublishedEvents] = useState<ChapterEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+
+  useEffect(() => {
+    getPublishedEvents().then((evs) => {
+      setPublishedEvents(evs);
+      setEventsLoading(false);
+    });
+  }, []);
 
   const handleSubscribeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,23 +190,128 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Empty State Card */}
-            <div className="w-full bg-[#ecedf7] rounded-[24px] p-12 flex flex-col items-center justify-center text-center shadow-xs border border-[#c2c6d5]/30 space-y-4">
-              <div className="w-20 h-20 bg-[#0058bd]/10 rounded-full flex items-center justify-center text-[#0058bd]">
-                <Bell className="w-10 h-10" />
+            {eventsLoading ? (
+              /* Loading skeleton */
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-[24px] border border-[#c2c6d5]/30 overflow-hidden animate-pulse">
+                    <div className="h-36 bg-[#ecedf7]" />
+                    <div className="p-5 space-y-3">
+                      <div className="h-3 bg-[#ecedf7] rounded-full w-1/3" />
+                      <div className="h-4 bg-[#ecedf7] rounded-full w-3/4" />
+                      <div className="h-3 bg-[#ecedf7] rounded-full w-1/2" />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h3 className="text-xl font-bold text-[#191b22]">No Upcoming Events Scheduled</h3>
-              <p className="text-sm text-[#424753] max-w-md">
-                We are brewing up something exciting behind the scenes for the upcoming semester. Subscribe to get notified instantly when new workshops drop!
-              </p>
-              <button
-                onClick={() => setShowSubscribeModal(true)}
-                className="px-6 py-3 bg-[#006e2c] text-white rounded-xl font-bold text-sm shadow-sm hover:bg-[#00722f] transition-all flex items-center gap-2 group"
-              >
-                <Bell className="w-4 h-4 group-hover:animate-bounce" />
-                <span>Subscribe to Notifications</span>
-              </button>
-            </div>
+            ) : publishedEvents.length === 0 ? (
+              /* Empty State */
+              <div className="w-full bg-[#ecedf7] rounded-[24px] p-12 flex flex-col items-center justify-center text-center shadow-xs border border-[#c2c6d5]/30 space-y-4">
+                <div className="w-20 h-20 bg-[#0058bd]/10 rounded-full flex items-center justify-center text-[#0058bd]">
+                  <Bell className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-[#191b22]">No Upcoming Events Scheduled</h3>
+                <p className="text-sm text-[#424753] max-w-md">
+                  We are brewing up something exciting behind the scenes for the upcoming semester. Subscribe to get notified instantly when new workshops drop!
+                </p>
+                <button
+                  onClick={() => setShowSubscribeModal(true)}
+                  className="px-6 py-3 bg-[#006e2c] text-white rounded-xl font-bold text-sm shadow-sm hover:bg-[#00722f] transition-all flex items-center gap-2 group"
+                >
+                  <Bell className="w-4 h-4 group-hover:animate-bounce" />
+                  <span>Subscribe to Notifications</span>
+                </button>
+              </div>
+            ) : (
+              /* Dynamic Event Cards Grid */
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {publishedEvents.map((ev) => {
+                  const dateStart = new Date(ev.date_start);
+                  const dayNum = dateStart.toLocaleDateString('id-ID', { day: 'numeric' });
+                  const monthName = dateStart.toLocaleDateString('id-ID', { month: 'short' }).toUpperCase();
+                  const timeStr = dateStart.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                  const categoryColors: Record<string, string> = {
+                    Workshop: 'bg-blue-100 text-blue-800',
+                    Hackathon: 'bg-red-100 text-red-800',
+                    'Info Session': 'bg-emerald-100 text-emerald-800',
+                    'Study Jam': 'bg-amber-100 text-amber-800',
+                  };
+                  const catColor = categoryColors[ev.category] || 'bg-[#e8f0fe] text-[#0058bd]';
+
+                  return (
+                    <div key={ev.id}
+                      className="group bg-white rounded-[24px] border border-[#c2c6d5]/30 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col">
+                      {/* Banner / Header */}
+                      <div className="relative h-36 overflow-hidden">
+                        {ev.banner_url ? (
+                          <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-700"
+                            style={{ backgroundImage: `url(${ev.banner_url})` }} />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#0058bd]/10 via-[#006e2c]/10 to-[#fbbc06]/10 flex items-center justify-center">
+                            <Calendar className="w-12 h-12 text-[#0058bd]/30" />
+                          </div>
+                        )}
+                        {/* Date Badge overlay */}
+                        <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-sm text-center min-w-[48px]">
+                          <div className="text-[10px] font-extrabold text-[#0058bd] uppercase tracking-wider">{monthName}</div>
+                          <div className="text-xl font-extrabold text-[#191b22] leading-none">{dayNum}</div>
+                        </div>
+                        {/* Category badge */}
+                        <div className="absolute top-3 right-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${catColor}`}>{ev.category}</span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 flex-1 flex flex-col gap-3">
+                        <h3 className="font-extrabold text-[#191b22] text-sm leading-snug group-hover:text-[#0058bd] transition-colors">
+                          {ev.title}
+                        </h3>
+
+                        <div className="space-y-1.5 text-xs text-[#727785]">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-3.5 h-3.5 text-[#0058bd] shrink-0" />
+                            <span>{timeStr} WIB</span>
+                          </div>
+                          <div className="flex items-center gap-2 truncate">
+                            <MapPin className="w-3.5 h-3.5 text-[#006e2c] shrink-0" />
+                            <span className="truncate">{ev.venue_or_link}</span>
+                          </div>
+                          {ev.speaker_name && (
+                            <div className="flex items-center gap-2 truncate">
+                              <Mic className="w-3.5 h-3.5 text-[#765700] shrink-0" />
+                              <span className="truncate font-semibold text-[#424753]">{ev.speaker_name}
+                                {ev.speaker_title && <span className="font-normal text-[#727785]"> · {ev.speaker_title}</span>}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {ev.description && (
+                          <p className="text-xs text-[#424753] leading-relaxed line-clamp-2">{ev.description}</p>
+                        )}
+
+                        {/* RSVP CTA */}
+                        <div className="mt-auto pt-2">
+                          {ev.rsvp_url ? (
+                            <a href={ev.rsvp_url} target="_blank" rel="noopener noreferrer"
+                              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0058bd] text-white rounded-xl text-xs font-bold hover:bg-[#2771df] transition-all shadow-sm group/btn">
+                              <span>RSVP / Register</span>
+                              <ExternalLink className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                            </a>
+                          ) : (
+                            <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#f2f3fd] text-[#727785] rounded-xl text-xs font-semibold">
+                              <Bell className="w-3.5 h-3.5" />Registration opening soon
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
           </div>
         </section>
