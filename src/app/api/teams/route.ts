@@ -9,8 +9,8 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, description, track, leaderId } = body;
-    const result = await store.createTeam({ name, description, track, leaderId });
+    const { name, description, track, leaderId, leaderH3Role } = body;
+    const result = await store.createTeam({ name, description, track, leaderId, leaderH3Role });
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 });

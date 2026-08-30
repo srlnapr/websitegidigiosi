@@ -426,7 +426,7 @@ export default function UserDashboard() {
             <span className="text-xs">Settings</span>
           </button>
 
-          {currentUser?.role === 'admin' && (
+          {(currentUser?.role as string) === 'admin' && (
             <Link
               href="/admin"
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#ba1a1a] bg-[#ffdad6]/40 hover:bg-[#ffdad6] font-bold text-xs transition-all border border-[#ba1a1a]/20"
@@ -535,7 +535,7 @@ export default function UserDashboard() {
                   {currentUser.name}
                 </div>
                 <div className={`px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase inline-block mt-0.5 ${
-                  currentUser.role === 'admin' 
+                  (currentUser.role as string) === 'admin' 
                     ? 'bg-[#ffdad6] text-[#ba1a1a]' 
                     : 'bg-[#e8f0fe] text-[#0058bd]'
                 }`}>
